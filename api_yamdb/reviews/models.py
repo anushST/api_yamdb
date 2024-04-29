@@ -8,8 +8,16 @@ User = get_user_model()
 class Title(models.Model):
     name = models.CharField(max_length=256, verbose_name='Название')
     year = models.PositiveSmallIntegerField(verbose_name='Год выпуска')
-    rating = models.IntegerField(verbose_name='Рейтинг', null=True)
-    description = models.TextField(verbose_name='Описание', null=True)
+    rating = models.IntegerField(
+        verbose_name='Рейтинг',
+        blank=True,
+        null=True
+    )
+    description = models.TextField(
+        verbose_name='Описание',
+        blank=True,
+        null=True
+    )
     genre = models.ForeignKey(
         'Genre',
         on_delete=models.SET_NULL,
@@ -24,6 +32,7 @@ class Title(models.Model):
         'Review',
         on_delete=models.SET_NULL,
         verbose_name='Отзыв',
+        blank=True,
         null=True
     )
 
