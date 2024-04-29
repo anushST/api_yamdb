@@ -93,9 +93,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Автор'
     )
-    score = models.IntegerField(
-        min_value=1,
-        max_value=10,
+    score = models.SmallIntegerField(
         verbose_name='Оценка',
         help_text='Целое число в диапазоне от 1 до 10'
     )
