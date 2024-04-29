@@ -47,7 +47,7 @@ class Genre(models.Model):
 
 class Category(models.Model):
     name = models.CharField('Название', max_length=256)
-    slug = slug = models.SlugField(
+    slug = models.SlugField(
         'Категория', max_length=50, unique=True,
         help_text='Идентификатор категории'
     )
