@@ -8,7 +8,7 @@ class TitleSerializer(ModelSerializer):
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'rating',
-                  'description', 'genre', 'category', 'review')
+                  'description', 'genre', 'category',)
 
 
 class GenreSerializer(ModelSerializer):
