@@ -15,13 +15,6 @@ class Title(models.Model):
     category = models.ForeignKey(
         'Category', on_delete=models.SET_NULL, verbose_name='Категория'
     )
-    review = models.ForeignKey(
-        'Review',
-        on_delete=models.SET_NULL,
-        verbose_name='Отзыв',
-        blank=True,
-        null=True
-    )
 
     class Meta:
         verbose_name = 'произведение'
@@ -33,7 +26,7 @@ class Title(models.Model):
 
 class Genre(models.Model):
     name = models.CharField('Название', max_length=256)
-    slug = slug = models.SlugField(
+    slug = models.SlugField(
         'Слаг', max_length=50, unique=True, help_text='Идентификатор жанра'
     )
 
