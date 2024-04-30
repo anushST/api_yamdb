@@ -8,6 +8,8 @@ from api.views import (
     ReviewViewSet,
     CommentViewSet,
 )
+from .constants import API_VERSION
+
 
 app_name = 'api'
 
@@ -22,7 +24,7 @@ router.register(
     CommentViewSet, basename='comment')
 
 urlpatterns = [
-    path('v1/', include('djoser.urls')),
-    path('v1/', include('djoser.urls.jwt')),
-    path('v1/', include(router.urls)),
+    path(f'{API_VERSION}/', include('djoser.urls')),
+    path(f'{API_VERSION}/', include('djoser.urls.jwt')),
+    path(f'{API_VERSION}/', include(router.urls)),
 ]
