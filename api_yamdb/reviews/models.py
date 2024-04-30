@@ -1,4 +1,7 @@
+import datetime
+
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -6,7 +9,11 @@ User = get_user_model()
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
-    year = models.PositiveSmallIntegerField('Год выпуска')
+    year = models.IntegerField('Год выпуска', validators=[
+            MinValueValidator(1900),
+            MaxValueValidator(datetime.now().year)
+        ]
+    )
     rating = models.IntegerField('Рейтинг', blank=True, null=True)
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ForeignKey(
