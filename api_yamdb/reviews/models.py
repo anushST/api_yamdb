@@ -11,16 +11,22 @@ class Title(models.Model):
     name = models.CharField('Название', max_length=256)
     year = models.IntegerField('Год выпуска', validators=[
             MinValueValidator(1900),
-            MaxValueValidator(datetime.now().year)
+            MaxValueValidator(datetime.datetime.now().year)
         ]
     )
     rating = models.IntegerField('Рейтинг', blank=True, null=True)
     description = models.TextField('Описание', blank=True, null=True)
-    genre = models.ForeignKey(
-        'Genre', on_delete=models.SET_NULL, verbose_name='Жанр'
+    genre = models.OneToOneField(
+        'Genre',
+        on_delete=models.SET_NULL,
+        related_name='title',
+        null=True,
+        blank=True,
+        verbose_name='Жанр'
     )
     category = models.ForeignKey(
-        'Category', on_delete=models.SET_NULL, verbose_name='Категория'
+        'Category', on_delete=models.SET_NULL, verbose_name='Категория',
+        null=True
     )
 
     class Meta:
