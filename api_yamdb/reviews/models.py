@@ -1,4 +1,7 @@
+import datetime
+
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -6,14 +9,24 @@ User = get_user_model()
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
-    year = models.PositiveSmallIntegerField('Год выпуска')
+    year = models.IntegerField('Год выпуска', validators=[
+            MinValueValidator(1900),
+            MaxValueValidator(datetime.datetime.now().year)
+        ]
+    )
     rating = models.IntegerField('Рейтинг', blank=True, null=True)
     description = models.TextField('Описание', blank=True, null=True)
-    genre = models.ForeignKey(
-        'Genre', on_delete=models.SET_NULL, verbose_name='Жанр'
+    genre = models.OneToOneField(
+        'Genre',
+        on_delete=models.SET_NULL,
+        related_name='title',
+        null=True,
+        blank=True,
+        verbose_name='Жанр'
     )
     category = models.ForeignKey(
-        'Category', on_delete=models.SET_NULL, verbose_name='Категория'
+        'Category', on_delete=models.SET_NULL, verbose_name='Категория',
+        null=True
     )
 
     class Meta:
@@ -66,7 +79,11 @@ class Review(models.Model):
         verbose_name='Автор'
     )
     score = models.SmallIntegerField(
-        'Оценка', help_text='Целое число в диапазоне от 1 до 10')
+        'Оценка', help_text='Целое число в диапазоне от 1 до 10',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ])
     pub_date = models.DateTimeField(
         'Дата и время отзыва', auto_now_add=True)
 
