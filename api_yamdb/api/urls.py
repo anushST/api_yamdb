@@ -8,8 +8,8 @@ from api.views import (
     ReviewViewSet,
     CommentViewSet,
 )
-from .constants import API_VERSION
 
+from .constants import API_VERSION
 
 app_name = 'api'
 
