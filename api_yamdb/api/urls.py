@@ -1,6 +1,8 @@
+"""Api app URL configuration."""
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
-
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView, TokenRefreshView,)
 from api.views import (
     TitleViewSet,
     GenreViewSet,
@@ -24,7 +26,10 @@ router.register(
     CommentViewSet, basename='comment')
 
 urlpatterns = [
-    path(f'{API_VERSION}/', include('djoser.urls')),
-    path(f'{API_VERSION}/', include('djoser.urls.jwt')),
+    path(f'{API_VERSION}/', include('users.urls')),
     path(f'{API_VERSION}/', include(router.urls)),
+    path('token/', TokenObtainPairView.as_view(),
+         name='token_obtain_pair'),  # Временно
+    path('token/refresh/', TokenRefreshView.as_view(),
+         name='token_refresh'),  # Временно
 ]
