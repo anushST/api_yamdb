@@ -20,3 +20,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name',
                   'bio', 'role',)
+
+
+class SignupSerializer(serializers.ModelSerializer):
+    """Serializer for SignupAPIView to work with User model."""
+
+    class Meta:
+        """Meta-data of SignupSerialzier class."""
+
+        model = User
+        fields = ('email', 'username',)
