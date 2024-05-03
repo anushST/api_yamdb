@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from reviews.models import Title, Genre, Category, Review, User
@@ -35,10 +34,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = self.get_title()
-        return title.reviews.all()
+        return title.reviews.all().order_by('-pub_date')
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(
+            author=self.request.user,
+            title_id=self.kwargs['title_id']
+        )
 
 
 class CommentViewSet(viewsets.ModelViewSet):

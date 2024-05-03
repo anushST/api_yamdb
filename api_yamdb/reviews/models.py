@@ -9,7 +9,9 @@ User = get_user_model()
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
-    year = models.IntegerField('Год выпуска', validators=[
+    year = models.IntegerField(
+        'Год выпуска',
+        validators=[
             MinValueValidator(1900),
             MaxValueValidator(datetime.datetime.now().year)
         ]
@@ -18,10 +20,7 @@ class Title(models.Model):
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
         'Genre',
-        # on_delete=models.SET_NULL,
         related_name='titles',
-        null=True,
-        # blank=True,
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
