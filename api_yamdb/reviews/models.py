@@ -16,12 +16,12 @@ class Title(models.Model):
     )
     rating = models.IntegerField('Рейтинг', blank=True, null=True)
     description = models.TextField('Описание', blank=True, null=True)
-    genre = models.OneToOneField(
+    genre = models.ManyToManyField(
         'Genre',
-        on_delete=models.SET_NULL,
-        related_name='title',
+        # on_delete=models.SET_NULL,
+        related_name='titles',
         null=True,
-        blank=True,
+        # blank=True,
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
