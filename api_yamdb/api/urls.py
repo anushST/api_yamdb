@@ -1,6 +1,6 @@
 """Api app URL configuration."""
 from django.urls import include, path
-from rest_framework.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, TokenRefreshView,)
 from api.views import (
@@ -15,10 +15,10 @@ from .constants import API_VERSION
 
 app_name = 'api'
 
-router = SimpleRouter()
-router.register('titles', TitleViewSet)
-router.register('genres', GenreViewSet)
-router.register('categories', CategoryViewSet)
+router = DefaultRouter()
+router.register('titles', TitleViewSet, basename='title')
+router.register('genres', GenreViewSet, basename='genre')
+router.register('categories', CategoryViewSet, basename='category')
 router.register(
     r'titles/(?P<title_id>[\d]+)/reviews', ReviewViewSet, basename='review')
 router.register(

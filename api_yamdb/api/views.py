@@ -4,7 +4,7 @@ from rest_framework import viewsets, filters
 
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly
-from reviews.models import Title, Genre, Category, Review, User
+from reviews.models import Title, Genre, Category, Review
 from .serializers import (TitleSerializer, GenreSerializer, CategorySerializer,
                           ReviewSerializer, CommentSerializer)
 
