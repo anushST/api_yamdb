@@ -6,7 +6,7 @@ from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly
 from reviews.models import Title, Genre, Category, Review, User
 from .serializers import (TitleSerializer, GenreSerializer, CategorySerializer,
-                          ReviewSerializer, CommentSerializer, UserSerializer)
+                          ReviewSerializer, CommentSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -54,8 +54,3 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.get_review())
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
