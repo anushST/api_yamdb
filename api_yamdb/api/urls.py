@@ -7,8 +7,6 @@ from api.views import (
     TitleViewSet,
     GenreViewSet,
     CategoryViewSet,
-    ReviewViewSet,
-    CommentViewSet,
 )
 
 from .constants import API_VERSION
@@ -19,11 +17,7 @@ router = DefaultRouter()
 router.register('titles', TitleViewSet, basename='title')
 router.register('genres', GenreViewSet, basename='genre')
 router.register('categories', CategoryViewSet, basename='category')
-router.register(
-    r'titles/(?P<title_id>[\d]+)/reviews', ReviewViewSet, basename='review')
-router.register(
-    r'titles/(?P<title_id>[\d]+)/reviews/(?P<review_id>[\d]+)/comments',
-    CommentViewSet, basename='comment')
+
 
 urlpatterns = [
     path(f'{API_VERSION}/', include('users.urls')),
