@@ -14,9 +14,9 @@ from .constants import API_VERSION
 app_name = 'api'
 
 router = DefaultRouter()
-router.register('titles', TitleViewSet, basename='title')
-router.register('genres', GenreViewSet, basename='genre')
-router.register('categories', CategoryViewSet, basename='category')
+router.register('titles', TitleViewSet,)
+router.register('genres', GenreViewSet,)
+router.register('categories', CategoryViewSet,)
 
 
 urlpatterns = [
