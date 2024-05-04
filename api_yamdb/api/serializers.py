@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
-from reviews.models import Title, Genre, Category, Review, Comment, User
+from reviews.models import Title, Genre, Category
 
 
 class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating',
+        fields = ('name', 'year', 'rating',
                   'description', 'genre', 'category',)
 
 
