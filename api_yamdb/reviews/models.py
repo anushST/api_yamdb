@@ -1,3 +1,4 @@
+"""Models for review app."""
 import datetime
 
 from django.contrib.auth import get_user_model
@@ -8,6 +9,8 @@ User = get_user_model()
 
 
 class Title(models.Model):
+    """The Title model."""
+
     name = models.CharField('Название', max_length=256)
     year = models.IntegerField(
         'Год выпуска',
@@ -29,28 +32,38 @@ class Title(models.Model):
     )
 
     class Meta:
+        """Meta-data of Title model."""
+
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
 
     def __str__(self):
+        """Magic method to display information about a class object."""
         return self.name
 
 
 class Genre(models.Model):
+    """The Genre model."""
+
     name = models.CharField('Название', max_length=256)
     slug = models.SlugField(
         'Слаг', max_length=50, unique=True, help_text='Идентификатор жанра'
     )
 
     class Meta:
+        """Meta-data of Genre model."""
+
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
+        """Magic method to display information about a class object."""
         return self.name
 
 
 class Category(models.Model):
+    """The Category model."""
+
     name = models.CharField('Название', max_length=256)
     slug = models.SlugField(
         'Категория', max_length=50, unique=True,
@@ -58,14 +71,19 @@ class Category(models.Model):
     )
 
     class Meta:
+        """Meta-data of Category model."""
+
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
     def __str__(self):
+        """Magic method to display information about a class object."""
         return self.name
 
 
 class Review(models.Model):
+    """The Review model."""
+
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
         related_name='reviews',
@@ -87,14 +105,19 @@ class Review(models.Model):
         'Дата и время отзыва', auto_now_add=True)
 
     class Meta:
+        """Meta-data of Review model."""
+
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
 
     def __str__(self):
+        """Magic method to display information about a class object."""
         return self.title[:50]
 
 
 class Comment(models.Model):
+    """The Comment model."""
+
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
@@ -113,8 +136,11 @@ class Comment(models.Model):
     )
 
     class Meta:
+        """Meta-data of Comment model."""
+
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
+        """Magic method to display information about a class object."""
         return str(self.review)
