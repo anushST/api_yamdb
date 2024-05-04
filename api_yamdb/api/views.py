@@ -28,7 +28,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_title(self):
-        title_id = self.kwargs['title_id']
+        title_id = self.kwargs.get('title_id')
         return get_object_or_404(Title, pk=title_id)
 
     def get_queryset(self):
@@ -38,21 +38,29 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            title_id=self.kwargs['title_id']
+            title_id=self.kwargs.get('title_id')
         )
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_review(self):
-        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        return get_object_or_404(Review, pk=review_id, title_id=title_id)
 
     def get_queryset(self):
-        return self.get_review().comments.all()
+        review = self.get_review()
+        return review.comments.all().order_by('-pub_date')
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, review=self.get_review())
+        review = self.get_review()
+        serializer.save(
+            author=self.request.user,
+            review=review
+        )
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
