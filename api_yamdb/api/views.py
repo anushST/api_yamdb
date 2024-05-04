@@ -6,10 +6,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from reviews.models import Title, Genre, Category, Review, User
+from reviews.models import Title, Genre, Category, Review
 from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (TitleSerializer, GenreSerializer, CategorySerializer,
-                          ReviewSerializer, CommentSerializer, UserSerializer)
+                          ReviewSerializer, CommentSerializer,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -76,8 +76,3 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=review
         )
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
