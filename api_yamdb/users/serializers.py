@@ -2,6 +2,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from .constants import NOT_ALLOWED_NAMES_FOR_USERS
+
 User = get_user_model()
 
 
@@ -30,3 +32,17 @@ class SignupSerializer(serializers.ModelSerializer):
 
         model = User
         fields = ('email', 'username',)
+
+    def validate_username(self, value):
+        """Validate field username."""
+        if value in NOT_ALLOWED_NAMES_FOR_USERS:
+            raise serializers.ValidationError(
+                'Нельзя использовать это имя')
+        return value
+
+
+class ConfirmationCodeSerializer(serializers.Serializer):
+    """Serializer for ConfirmationCode model."""
+
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.IntegerField()

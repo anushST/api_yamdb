@@ -7,8 +7,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import SignupSerializer, UserSerializer
+from .serializers import (
+    ConfirmationCodeSerializer, SignupSerializer, UserSerializer)
+from .send_mail import check_code, send_mail_to_user
 
 User = get_user_model()
 
@@ -51,7 +54,7 @@ class UserApiView(APIView):
     def get(self, request):
         """Execute when GET method."""
         serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         """Execute when PATCH method."""
@@ -61,7 +64,7 @@ class UserApiView(APIView):
                                     partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -71,12 +74,19 @@ class SignupAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        """Execute when post method."""
+        """Execute when POST method."""
         serializer = SignupSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            # ToDo email_sending
-            return Response(serializer.data)
+        username = serializer.initial_data.get('username', None)
+        email = serializer.initial_data.get('email', None)
+        try:
+            user = User.objects.get(username=username, email=email)
+            send_mail_to_user(user)
+            return Response(serializer.initial_data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            if serializer.is_valid():
+                user = serializer.save()
+                send_mail_to_user(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -86,5 +96,21 @@ class GetTokenAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        """Execute when post method."""
-        pass  # ToDo email_processing
+        """Execute when POST method."""
+        serializer = ConfirmationCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                username: str = serializer.data.get('username', None)
+                user = User.objects.get(username=username)
+                confirmation_code: int = serializer.data.get(
+                    'confirmation_code', None)
+                if check_code(user, confirmation_code):
+                    refresh_token = RefreshToken.for_user(user)
+                    return Response({"token": str(refresh_token.access_token)},
+                                    status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                return Response({"message": "Пользователь не найден"},
+                                status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"message": "Отсутствует обязательное поле или оно некорректно"},
+            status=status.HTTP_400_BAD_REQUEST)
