@@ -76,10 +76,17 @@ class SignupAPIView(APIView):
     def post(self, request):
         """Execute when POST method."""
         serializer = SignupSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
+        username = serializer.initial_data.get('username', None)
+        email = serializer.initial_data.get('email', None)
+        try:
+            user = User.objects.get(username=username, email=email)
             send_mail_to_user(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.initial_data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            if serializer.is_valid():
+                user = serializer.save()
+                send_mail_to_user(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -93,7 +100,7 @@ class GetTokenAPIView(APIView):
         serializer = ConfirmationCodeSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                username: str = serializer.data.get('username', '')
+                username: str = serializer.data.get('username', None)
                 user = User.objects.get(username=username)
                 confirmation_code: int = serializer.data.get(
                     'confirmation_code', None)
