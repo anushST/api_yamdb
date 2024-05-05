@@ -1,7 +1,6 @@
 """Views for users app."""
 from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -9,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .permissions import AllowOnlyAdminAndSuperuser
 from .serializers import (
     ConfirmationCodeSerializer, SignupSerializer, UserSerializer)
 from .send_mail import check_code, send_mail_to_user
@@ -21,7 +21,7 @@ class UserViewSetForAdmin(ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowOnlyAdminAndSuperuser,)
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
@@ -35,15 +35,6 @@ class UserViewSetForAdmin(ModelViewSet):
             return super().update(request, *args, **kwargs)
         else:
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def check_permissions(self, request):
-        """Check if the request should be permitted.
-
-        Overrided to allow only for admin and superuser.
-        """
-        super().check_permissions(request)
-        if request.user.role != 'admin' or not request.user.is_superuser:
-            raise PermissionDenied('Нет прав доступа')
 
 
 class UserApiView(APIView):
