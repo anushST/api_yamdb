@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import AllowOnlyAdminAndSuperuser
+from .permissions import AllowOnlyAdminOrSuperuser
 from .serializers import (
     ConfirmationCodeSerializer, SignupSerializer, UserSerializer)
 from .send_mail import check_code, send_mail_to_user
@@ -21,7 +21,7 @@ class UserViewSetForAdmin(ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (AllowOnlyAdminAndSuperuser,)
+    permission_classes = (AllowOnlyAdminOrSuperuser,)
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'

@@ -2,7 +2,7 @@
 from rest_framework import permissions
 
 
-class AllowOnlyAdminAndSuperuser(permissions.BasePermission):
+class AllowOnlyAdminOrSuperuser(permissions.BasePermission):
     """Allow only admin and superuser."""
 
     def has_permission(self, request, view):
