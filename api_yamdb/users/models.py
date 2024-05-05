@@ -31,6 +31,11 @@ class User(AbstractUser):
             raise ValidationError('Нельзя использовать это имя в username.')
         super().save(*args, **kwargs)
 
+    class Meta:
+        """Meta-data of the User class."""
+
+        ordering = ('id',)
+
 
 class ConfirmationCode(models.Model):
     """Confirmation codes of users."""
