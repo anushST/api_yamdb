@@ -20,9 +20,11 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """Allow only for admin or superuser."""
 
     def has_permission(self, request, view):
+        """Object permissions."""
         if request.method in permissions.SAFE_METHODS:
             return True
         else:
-            return (request.user.is_authenticated and
-                    (request.user.role == 'admin' or
-                     request.user.is_superuser))
+            return (
+                request.user.is_authenticated
+                and (request.user.role == 'admin'
+                     or request.user.is_superuser))
