@@ -7,6 +7,5 @@ class AllowOnlyAdminOrSuperuser(permissions.BasePermission):
 
     def has_permission(self, request, view):
         """Check permission."""
-        return True if (request.user.is_authenticated
-                        and (request.user.role == 'admin'
-                             or request.user.is_superuser)) else False
+        return True if (request.user.role == 'admin'
+                        or request.user.is_superuser) else False
