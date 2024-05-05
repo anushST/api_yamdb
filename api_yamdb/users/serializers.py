@@ -7,14 +7,20 @@ from .constants import NOT_ALLOWED_NAMES_FOR_USERS
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Serializer for User model."""
+class BaseUserSerializer(serializers.ModelSerializer):
+    """Base serializer for User model."""
 
-    user_types = ('user', 'moderator', 'admin',)
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
-    bio = serializers.CharField(max_length=1000000, required=False)
-    role = serializers.ChoiceField(choices=user_types, required=False)
+    email = serializers.EmailField(max_length=254, required=True)
+
+    def validate_email(self, value):
+        """Validate field email."""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email already exists.")
+        return value
+
+
+class UserSerializer(BaseUserSerializer):
+    """Serializer for User model."""
 
     class Meta:
         """Meta-data of UserSerialzier class."""
@@ -24,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio', 'role',)
 
 
-class SignupSerializer(serializers.ModelSerializer):
+class SignupSerializer(BaseUserSerializer):
     """Serializer for SignupAPIView to work with User model."""
 
     class Meta:
