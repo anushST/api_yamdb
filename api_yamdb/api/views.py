@@ -8,18 +8,18 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from reviews.models import Category, Genre, Review, Title
 from .filter import TitleFilter
+from .mixins import HttpMethodsMixin
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Title model."""
 
     queryset = Title.objects.all().with_rating()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    http_method_names = ['get', 'post', 'delete', 'patch']
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
 
@@ -48,11 +48,10 @@ class CategoryViewSet(CreateModelMixin, ListModelMixin, DestroyModelMixin,
     lookup_field = 'slug'
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Review model."""
 
     serializer_class = ReviewSerializer
-    http_method_names = ['get', 'post', 'delete', 'patch']
     permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_title(self):
@@ -73,11 +72,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         )
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Comment model."""
 
     serializer_class = CommentSerializer
-    http_method_names = ['get', 'post', 'delete', 'patch']
     permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_review(self):
