@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .constants import ARITY
+from .constants import ROUND_FUC_ARGS
 
 User = get_user_model()
 
@@ -14,7 +14,7 @@ class Round(models.Func):
     """Call round function from SQL."""
 
     function = 'ROUND'
-    arity = ARITY
+    arity = ROUND_FUC_ARGS
 
 
 class RatingQuerySet(models.QuerySet):
@@ -24,7 +24,7 @@ class RatingQuerySet(models.QuerySet):
         """Return rounded rating."""
         return self.annotate(
             rating_avg=Round(models.Avg('reviews__score'),
-                             ARITY, output_field=models.FloatField()))
+                             ROUND_FUC_ARGS, output_field=models.FloatField()))
 
 
 class Title(models.Model):

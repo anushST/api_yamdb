@@ -1,2 +1,2 @@
 """Reviews app constants."""
-ARITY = 2
+ROUND_FUC_ARGS = 2
