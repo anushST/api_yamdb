@@ -8,6 +8,17 @@ from django.db import models
 User = get_user_model()
 
 
+class Round(models.Func):
+    function = 'ROUND'
+    arity = 2
+
+
+class RatingQuerySet(models.QuerySet):
+
+    def with_rating(self):
+        return self.annotate(rating_avg=Round(models.Avg('reviews__score'), 2, output_field=models.FloatField()))
+
+
 class Title(models.Model):
     """The Title model."""
 
@@ -19,7 +30,12 @@ class Title(models.Model):
             MaxValueValidator(datetime.datetime.now().year)
         ]
     )
-    rating = models.IntegerField('Рейтинг', blank=True, null=True)
+    objects = RatingQuerySet.as_manager()
+
+    @property
+    def rating(self):
+        return getattr(self, 'rating_avg', None)
+
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
         'Genre',
@@ -109,6 +125,7 @@ class Review(models.Model):
 
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
+        unique_together = [['title', 'author']]
 
     def __str__(self):
         """Magic method to display information about a class object."""

@@ -2,28 +2,33 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 
-from .pagination import CustomPagination
+
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from django.http import Http404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.mixins import (
+    CreateModelMixin, ListModelMixin, DestroyModelMixin)
 
 from reviews.models import Title, Genre, Category, Review
 from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (TitleSerializer, GenreSerializer, CategorySerializer,
                           ReviewSerializer, CommentSerializer,)
+from .filter import TitleFilter
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet for Title model."""
 
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().with_rating()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year',)
+    http_method_names = ['get', 'post', 'delete', 'patch']
+    filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateModelMixin, ListModelMixin,
+                   DestroyModelMixin, viewsets.GenericViewSet):
     """ViewSet for Genre model."""
 
     queryset = Genre.objects.all()
@@ -31,10 +36,11 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
+    lookup_field = 'slug'
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateModelMixin, ListModelMixin, DestroyModelMixin,
+                      viewsets.GenericViewSet):
     """ViewSet for Category model."""
 
     queryset = Category.objects.all()
@@ -42,13 +48,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
+    lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet for Review model."""
 
     serializer_class = ReviewSerializer
+    http_method_names = ['get', 'post', 'delete', 'patch']
     permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_title(self):
@@ -61,11 +68,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = self.get_title()
         return title.reviews.all().order_by('-pub_date')
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):        
         """Save serializer data."""
+
         serializer.save(
             author=self.request.user,
-            title_id=self.kwargs.get('title_id')
+            title=self.get_title()
         )
 
 
@@ -73,6 +81,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """ViewSet for Comment model."""
 
     serializer_class = CommentSerializer
+    http_method_names = ['get', 'post', 'delete', 'patch']
     permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_review(self):
