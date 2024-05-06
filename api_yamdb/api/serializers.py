@@ -1,8 +1,7 @@
 """Serializers for api app."""
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import Title, Genre, Category, Review, Comment
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -38,7 +37,6 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Category.objects.all()
     )
-    # rating = serializers.SerializerMethodField()
 
     class Meta:
         """Meta-data of TitleSerializier class."""
@@ -48,14 +46,16 @@ class TitleSerializer(serializers.ModelSerializer):
                   'description', 'genre', 'category',)
 
     def to_representation(self, instance):
-        """Метод для кастомного представления данных при сериализации ответов."""
-        representation = super().to_representation(instance)
-        
-        representation['genre'] = GenreSerializer(instance.genre, many=True).data
-        representation['category'] = CategorySerializer(instance.category).data
-        
-        return representation
+        """
+        Let`s override to_representation method.
 
+        Custom data representation when serializing responses.
+        """
+        representation = super().to_representation(instance)
+        representation['genre'] = GenreSerializer(
+            instance.genre, many=True).data
+        representation['category'] = CategorySerializer(instance.category).data
+        return representation
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -71,13 +71,16 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
-    
+
     def validate(self, data):
+        """Let`s override validate method."""
         if self.context['request'].method != 'PATCH':
             title_id = self.context['view'].kwargs.get('title_id')
             author = self.context['request'].user
-            if Review.objects.filter(title_id=title_id, author=author).exists():
-                raise serializers.ValidationError("Review for this title already exists")
+            if Review.objects.filter(title_id=title_id,
+                                     author=author).exists():
+                raise serializers.ValidationError(
+                    "Review for this title already exists.")
         return data
 
 

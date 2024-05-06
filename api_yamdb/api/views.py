@@ -1,19 +1,16 @@
 """Views for api app."""
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
-
-
 from django.shortcuts import get_object_or_404
-from django.http import Http404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.mixins import (
-    CreateModelMixin, ListModelMixin, DestroyModelMixin)
 
-from reviews.models import Title, Genre, Category, Review
-from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (TitleSerializer, GenreSerializer, CategorySerializer,
-                          ReviewSerializer, CommentSerializer,)
+from reviews.models import Category, Genre, Review, Title
 from .filter import TitleFilter
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, TitleSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -68,9 +65,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = self.get_title()
         return title.reviews.all().order_by('-pub_date')
 
-    def perform_create(self, serializer):        
+    def perform_create(self, serializer):
         """Save serializer data."""
-
         serializer.save(
             author=self.request.user,
             title=self.get_title()

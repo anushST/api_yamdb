@@ -2,21 +2,29 @@
 import datetime
 
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from .constants import ARITY
 
 User = get_user_model()
 
 
 class Round(models.Func):
+    """Call round function from SQL."""
+
     function = 'ROUND'
-    arity = 2
+    arity = ARITY
 
 
 class RatingQuerySet(models.QuerySet):
+    """Rating queryset."""
 
     def with_rating(self):
-        return self.annotate(rating_avg=Round(models.Avg('reviews__score'), 2, output_field=models.FloatField()))
+        """Return rounded rating."""
+        return self.annotate(
+            rating_avg=Round(models.Avg('reviews__score'),
+                             ARITY, output_field=models.FloatField()))
 
 
 class Title(models.Model):
@@ -34,6 +42,7 @@ class Title(models.Model):
 
     @property
     def rating(self):
+        """Rating atribute."""
         return getattr(self, 'rating_avg', None)
 
     description = models.TextField('Описание', blank=True, null=True)
