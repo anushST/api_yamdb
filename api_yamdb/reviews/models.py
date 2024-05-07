@@ -80,6 +80,7 @@ class Genre(models.Model):
 
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ['name']
 
     def __str__(self):
         """Magic method to display information about a class object."""
@@ -100,6 +101,7 @@ class Category(models.Model):
 
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
+        ordering = ['name']
 
     def __str__(self):
         """Magic method to display information about a class object."""
