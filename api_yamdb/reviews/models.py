@@ -1,11 +1,11 @@
 """Models for review app."""
-import datetime
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .constants import ROUND_FUC_ARGS
+from .constants import ROUND_FUC_ARGS, MIN_YEAR_FOR_ART_OF_HUMAN
+from core.models import BaseModel
+from .validators import get_current_year_validator
 
 User = get_user_model()
 
@@ -31,11 +31,11 @@ class Title(models.Model):
     """The Title model."""
 
     name = models.CharField('Название', max_length=256)
-    year = models.IntegerField(
+    year = models.SmallIntegerField(
         'Год выпуска',
         validators=[
-            MinValueValidator(1900),
-            MaxValueValidator(datetime.datetime.now().year)
+            MinValueValidator(MIN_YEAR_FOR_ART_OF_HUMAN),
+            get_current_year_validator
         ]
     )
     objects = RatingQuerySet.as_manager()
@@ -67,45 +67,24 @@ class Title(models.Model):
         return self.name
 
 
-class Genre(models.Model):
+class Genre(BaseModel):
     """The Genre model."""
 
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField(
-        'Слаг', max_length=50, unique=True, help_text='Идентификатор жанра'
-    )
-
-    class Meta:
+    class Meta(BaseModel.Meta):
         """Meta-data of Genre model."""
 
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ['name']
-
-    def __str__(self):
-        """Magic method to display information about a class object."""
-        return self.name
 
 
-class Category(models.Model):
+class Category(BaseModel):
     """The Category model."""
 
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField(
-        'Категория', max_length=50, unique=True,
-        help_text='Идентификатор категории'
-    )
-
-    class Meta:
+    class Meta(BaseModel.Meta):
         """Meta-data of Category model."""
 
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
-        ordering = ['name']
-
-    def __str__(self):
-        """Magic method to display information about a class object."""
-        return self.name
 
 
 class Review(models.Model):
