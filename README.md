@@ -51,3 +51,9 @@ python3 manage.py migrate
 ```
 python3 manage.py runserver
 ```
+
+Импорт данных из csv-файлов в базу данных:
+
+```
+python3 manage.py import
+```

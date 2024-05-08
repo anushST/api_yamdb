@@ -12,11 +12,12 @@ from .permissions import AllowOnlyAdminOrSuperuser
 from .serializers import (
     ConfirmationCodeSerializer, SignupSerializer, UserSerializer)
 from .send_mail import check_code, send_mail_to_user
+from api.mixins import HttpMethodsMixin
 
 User = get_user_model()
 
 
-class UserViewSetForAdmin(ModelViewSet):
+class UserViewSetForAdmin(HttpMethodsMixin, ModelViewSet):
     """ViewSet for admin user to control User model."""
 
     queryset = User.objects.all()
@@ -25,16 +26,6 @@ class UserViewSetForAdmin(ModelViewSet):
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
-
-    def update(self, request, *args, **kwargs):
-        """Update data in database.
-
-        Overrided to allow only PATCH method.
-        """
-        if request.method == 'PATCH':
-            return super().update(request, *args, **kwargs)
-        else:
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class UserApiView(APIView):

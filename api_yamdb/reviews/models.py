@@ -2,10 +2,29 @@
 import datetime
 
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from .constants import ROUND_FUC_ARGS
+
 User = get_user_model()
+
+
+class Round(models.Func):
+    """Call round function from SQL."""
+
+    function = 'ROUND'
+    arity = ROUND_FUC_ARGS
+
+
+class RatingQuerySet(models.QuerySet):
+    """Rating queryset."""
+
+    def with_rating(self):
+        """Return rounded rating."""
+        return self.annotate(
+            rating_avg=Round(models.Avg('reviews__score'),
+                             ROUND_FUC_ARGS, output_field=models.FloatField()))
 
 
 class Title(models.Model):
@@ -19,7 +38,13 @@ class Title(models.Model):
             MaxValueValidator(datetime.datetime.now().year)
         ]
     )
-    rating = models.IntegerField('Рейтинг', blank=True, null=True)
+    objects = RatingQuerySet.as_manager()
+
+    @property
+    def rating(self):
+        """Rating atribute."""
+        return getattr(self, 'rating_avg', None)
+
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
         'Genre',
@@ -55,6 +80,7 @@ class Genre(models.Model):
 
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ['name']
 
     def __str__(self):
         """Magic method to display information about a class object."""
@@ -75,6 +101,7 @@ class Category(models.Model):
 
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
+        ordering = ['name']
 
     def __str__(self):
         """Magic method to display information about a class object."""
@@ -109,6 +136,7 @@ class Review(models.Model):
 
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
+        unique_together = [['title', 'author']]
 
     def __str__(self):
         """Magic method to display information about a class object."""
