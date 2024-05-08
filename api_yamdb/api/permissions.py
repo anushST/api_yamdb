@@ -1,6 +1,8 @@
 """Api app permissions."""
 from rest_framework import permissions
 
+from users.models import User
+
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     """Allow only author of object, moderator, admin or superuser."""
@@ -8,8 +10,8 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         """Object permissions."""
         if (request.method in permissions.SAFE_METHODS
-            or request.user.role == 'moderator'
-            or request.user.role == 'admin'
+            or request.user.role == User.UsersType.MODERATOR
+            or request.user.role == User.UsersType.ADMIN
            or request.user.is_superuser):
             return True
 
@@ -21,10 +23,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         """Object permissions."""
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        else:
-            return (
-                request.user.is_authenticated
-                and (request.user.role == 'admin'
-                     or request.user.is_superuser))
+        return ((request.method in permissions.SAFE_METHODS)
+                or (request.user.is_authenticated
+                    and (request.user.role == User.UsersType.ADMIN
+                         or request.user.is_superuser)))
