@@ -1,29 +1,38 @@
 """Views for api app."""
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
-
-from .pagination import CustomPagination
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from reviews.models import Title, Genre, Category, Review
-from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (TitleSerializer, GenreSerializer, CategorySerializer,
-                          ReviewSerializer, CommentSerializer,)
+from reviews.models import Category, Genre, Review, Title
+from .filter import TitleFilter
+from .mixins import HttpMethodsMixin
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, TitleSerializer)
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Title model."""
 
-    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year',)
+    filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
 
+    def get_queryset(self):
+        """Return queryset of title object."""
+        queryset = Title.objects.annotate(
+            rating_avg=Avg('reviews__score')
+        ).order_by('name')
+        return queryset
 
-class GenreViewSet(viewsets.ModelViewSet):
+
+class GenreViewSet(CreateModelMixin, ListModelMixin,
+                   DestroyModelMixin, viewsets.GenericViewSet):
     """ViewSet for Genre model."""
 
     queryset = Genre.objects.all()
@@ -31,10 +40,11 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
+    lookup_field = 'slug'
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateModelMixin, ListModelMixin, DestroyModelMixin,
+                      viewsets.GenericViewSet):
     """ViewSet for Category model."""
 
     queryset = Category.objects.all()
@@ -42,10 +52,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
+    lookup_field = 'slug'
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Review model."""
 
     serializer_class = ReviewSerializer
@@ -65,11 +75,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """Save serializer data."""
         serializer.save(
             author=self.request.user,
-            title_id=self.kwargs.get('title_id')
+            title=self.get_title()
         )
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Comment model."""
 
     serializer_class = CommentSerializer
