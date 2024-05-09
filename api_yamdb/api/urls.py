@@ -11,7 +11,7 @@ from .constants import API_VERSION
 app_name = 'api'
 
 router = SimpleRouter()
-router.register('titles', TitleViewSet)
+router.register('titles', TitleViewSet, basename="title")
 router.register(
     r'titles/(?P<title_id>[\d]+)/reviews', ReviewViewSet, basename='review')
 router.register(
