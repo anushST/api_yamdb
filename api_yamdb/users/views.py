@@ -40,8 +40,11 @@ class UserApiView(APIView):
 
     def patch(self, request):
         """Execute when PATCH method."""
+        # Без этой строчки в тесте tests/test_01_users.py test_10_03
+        # вылетает ошибка QueryDict immutable.
         data = request.data.copy()
-        data.pop('role', None)
+        if 'role' in data:
+            data['role'] = request.user.role
         serializer = UserSerializer(request.user, data=data,
                                     partial=True)
         if serializer.is_valid():
@@ -58,17 +61,10 @@ class SignupAPIView(APIView):
     def post(self, request):
         """Execute when POST method."""
         serializer = SignupSerializer(data=request.data)
-        username = serializer.initial_data.get('username', None)
-        email = serializer.initial_data.get('email', None)
-        try:
-            user = User.objects.get(username=username, email=email)
+        if serializer.is_valid():
+            user = serializer.save()
             send_mail_to_user(user)
-            return Response(serializer.initial_data, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            if serializer.is_valid():
-                user = serializer.save()
-                send_mail_to_user(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -1,26 +1,24 @@
 """Serializers for users app."""
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.db import IntegrityError
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator, ValidationError
 
-from .constants import NOT_ALLOWED_NAMES_FOR_USERS
+from .constants import EMAIL_MAX_LENGTH, USERNAME_MAX_LENGTH
+from .validators import validate_username
 
 User = get_user_model()
 
 
-class BaseUserSerializer(serializers.ModelSerializer):
-    """Base serializer for User model."""
-
-    email = serializers.EmailField(max_length=254, required=True)
-
-    def validate_email(self, value):
-        """Validate field email."""
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("This email already exists.")
-        return value
-
-
-class UserSerializer(BaseUserSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model."""
+
+    email = serializers.EmailField(
+        max_length=EMAIL_MAX_LENGTH, required=True,
+        validators=(UniqueValidator(User.objects.all(),
+                                    'This email already exists.'),)
+    )
 
     class Meta:
         """Meta-data of UserSerialzier class."""
@@ -30,21 +28,23 @@ class UserSerializer(BaseUserSerializer):
                   'bio', 'role',)
 
 
-class SignupSerializer(BaseUserSerializer):
+class SignupSerializer(serializers.Serializer):
     """Serializer for SignupAPIView to work with User model."""
 
-    class Meta:
-        """Meta-data of SignupSerialzier class."""
+    username = serializers.CharField(
+        max_length=USERNAME_MAX_LENGTH,
+        validators=(UnicodeUsernameValidator(), validate_username,))
+    email = serializers.EmailField(max_length=EMAIL_MAX_LENGTH, required=True)
 
-        model = User
-        fields = ('email', 'username',)
-
-    def validate_username(self, value):
-        """Validate field username."""
-        if value in NOT_ALLOWED_NAMES_FOR_USERS:
-            raise serializers.ValidationError(
-                'Нельзя использовать это имя')
-        return value
+    def create(self, validated_data):
+        """Execute when POST method."""
+        try:
+            return User.objects.get(**validated_data)
+        except User.DoesNotExist:
+            try:
+                return User.objects.create(**validated_data)
+            except IntegrityError as e:
+                raise ValidationError(e)
 
 
 class ConfirmationCodeSerializer(serializers.Serializer):
