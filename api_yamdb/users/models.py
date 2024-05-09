@@ -48,11 +48,3 @@ class User(AbstractUser):
         """Meta-data of the User class."""
 
         ordering = ('id',)
-
-
-class ConfirmationCode(models.Model):
-    """Confirmation codes of users."""
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                related_name='code_user')
-    code = models.PositiveIntegerField()

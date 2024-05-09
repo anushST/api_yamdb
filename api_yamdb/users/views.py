@@ -80,7 +80,7 @@ class GetTokenAPIView(APIView):
             try:
                 username: str = serializer.data.get('username', None)
                 user = User.objects.get(username=username)
-                confirmation_code: int = serializer.data.get(
+                confirmation_code: str = serializer.data.get(
                     'confirmation_code', None)
                 if check_code(user, confirmation_code):
                     refresh_token = RefreshToken.for_user(user)

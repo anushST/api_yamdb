@@ -51,4 +51,4 @@ class ConfirmationCodeSerializer(serializers.Serializer):
     """Serializer for ConfirmationCode model."""
 
     username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.IntegerField()
+    confirmation_code = serializers.CharField()
