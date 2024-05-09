@@ -18,6 +18,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 class TitleViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Title model."""
 
+    # queryset = Title.objects.all().with_rating().order_by('name')
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
