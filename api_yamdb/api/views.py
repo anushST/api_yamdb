@@ -1,14 +1,13 @@
 """Views for api app."""
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
-from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
-                                   ListModelMixin)
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from reviews.models import Category, Genre, Review, Title
 from .filter import TitleFilter
-from .mixins import HttpMethodsMixin
+from .mixins import HttpMethodsMixin, GenreCategoryMixin
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
@@ -17,35 +16,31 @@ from .serializers import (CategorySerializer, CommentSerializer,
 class TitleViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Title model."""
 
-    queryset = Title.objects.all().with_rating().order_by('name')
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
 
+    def get_queryset(self):
+        """Return queryset of title object."""
+        queryset = Title.objects.annotate(
+            rating_avg=Avg('reviews__score')
+        ).order_by('name')
+        return queryset
 
-class GenreViewSet(CreateModelMixin, ListModelMixin,
-                   DestroyModelMixin, viewsets.GenericViewSet):
+
+class GenreViewSet(GenreCategoryMixin):
     """ViewSet for Genre model."""
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    permission_classes = (IsAdminOrReadOnly,)
-    lookup_field = 'slug'
 
 
-class CategoryViewSet(CreateModelMixin, ListModelMixin, DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(GenreCategoryMixin):
     """ViewSet for Category model."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    permission_classes = (IsAdminOrReadOnly,)
-    lookup_field = 'slug'
 
 
 class ReviewViewSet(HttpMethodsMixin, viewsets.ModelViewSet):

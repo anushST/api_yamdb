@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
+from .constants import DEFAULT_TITLE_RATING
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -38,12 +39,21 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
 
+    rating = serializers.SerializerMethodField()
+
     class Meta:
         """Meta-data of TitleSerializier class."""
 
         model = Title
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category',)
+
+    def get_rating(self, obj):
+        """Get annotated rating value."""
+        try:
+            return obj.rating_avg
+        except AttributeError:
+            return DEFAULT_TITLE_RATING
 
     def to_representation(self, instance):
         """
