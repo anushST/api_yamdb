@@ -1,49 +1,26 @@
 """Models for review app."""
-import datetime
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .constants import ROUND_FUC_ARGS
+from .constants import MIN_YEAR_FOR_ART_OF_HUMAN
+from core.models import CategoryGenreBaseModel, ReviewCommentBaseModel
+from .validators import get_current_year_validator
 
 User = get_user_model()
-
-
-class Round(models.Func):
-    """Call round function from SQL."""
-
-    function = 'ROUND'
-    arity = ROUND_FUC_ARGS
-
-
-class RatingQuerySet(models.QuerySet):
-    """Rating queryset."""
-
-    def with_rating(self):
-        """Return rounded rating."""
-        return self.annotate(
-            rating_avg=Round(models.Avg('reviews__score'),
-                             ROUND_FUC_ARGS, output_field=models.FloatField()))
 
 
 class Title(models.Model):
     """The Title model."""
 
     name = models.CharField('Название', max_length=256)
-    year = models.IntegerField(
+    year = models.SmallIntegerField(
         'Год выпуска',
         validators=[
-            MinValueValidator(1900),
-            MaxValueValidator(datetime.datetime.now().year)
+            MinValueValidator(MIN_YEAR_FOR_ART_OF_HUMAN),
+            get_current_year_validator
         ]
     )
-    objects = RatingQuerySet.as_manager()
-
-    @property
-    def rating(self):
-        """Rating atribute."""
-        return getattr(self, 'rating_avg', None)
 
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
@@ -67,48 +44,27 @@ class Title(models.Model):
         return self.name
 
 
-class Genre(models.Model):
+class Genre(CategoryGenreBaseModel):
     """The Genre model."""
 
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField(
-        'Слаг', max_length=50, unique=True, help_text='Идентификатор жанра'
-    )
-
-    class Meta:
+    class Meta(CategoryGenreBaseModel.Meta):
         """Meta-data of Genre model."""
 
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ['name']
-
-    def __str__(self):
-        """Magic method to display information about a class object."""
-        return self.name
 
 
-class Category(models.Model):
+class Category(CategoryGenreBaseModel):
     """The Category model."""
 
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField(
-        'Категория', max_length=50, unique=True,
-        help_text='Идентификатор категории'
-    )
-
-    class Meta:
+    class Meta(CategoryGenreBaseModel.Meta):
         """Meta-data of Category model."""
 
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
-        ordering = ['name']
-
-    def __str__(self):
-        """Magic method to display information about a class object."""
-        return self.name
 
 
-class Review(models.Model):
+class Review(ReviewCommentBaseModel):
     """The Review model."""
 
     title = models.ForeignKey(
@@ -116,20 +72,12 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Произведение'
     )
-    text = models.TextField('Текст отзыва')
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Автор'
-    )
-    score = models.SmallIntegerField(
+    score = models.PositiveSmallIntegerField(
         'Оценка', help_text='Целое число в диапазоне от 1 до 10',
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10)
         ])
-    pub_date = models.DateTimeField(
-        'Дата и время отзыва', auto_now_add=True)
 
     class Meta:
         """Meta-data of Review model."""
@@ -138,12 +86,8 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         unique_together = [['title', 'author']]
 
-    def __str__(self):
-        """Magic method to display information about a class object."""
-        return self.title[:50]
 
-
-class Comment(models.Model):
+class Comment(ReviewCommentBaseModel):
     """The Comment model."""
 
     review = models.ForeignKey(
@@ -152,23 +96,9 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Отзыв'
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Автор'
-    )
-    text = models.TextField('Комментарий')
-    pub_date = models.DateTimeField(
-        'Дата и время комментария',
-        auto_now_add=True
-    )
 
     class Meta:
         """Meta-data of Comment model."""
 
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
-
-    def __str__(self):
-        """Magic method to display information about a class object."""
-        return str(self.review)

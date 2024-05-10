@@ -11,7 +11,7 @@ from .constants import API_VERSION
 app_name = 'api'
 
 router = SimpleRouter()
-router.register('titles', TitleViewSet)
+router.register('titles', TitleViewSet, basename="title")
 router.register(
     r'titles/(?P<title_id>[\d]+)/reviews', ReviewViewSet, basename='review')
 router.register(
@@ -30,7 +30,7 @@ urlpatterns = [
     path(f'{API_VERSION}/categories/<slug:slug>/', CategoryViewSet.as_view(
         {'delete': 'destroy'})),
     path('token/', TokenObtainPairView.as_view(),
-         name='token_obtain_pair'),  # Временно
+         name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(),
-         name='token_refresh'),  # Временно
+         name='token_refresh'),
 ]

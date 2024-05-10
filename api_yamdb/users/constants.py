@@ -1,2 +1,5 @@
 """Constants of users app."""
 NOT_ALLOWED_NAMES_FOR_USERS = ('me',)
+ROLE_MAX_LENGTH = 9
+EMAIL_MAX_LENGTH = 254
+USERNAME_MAX_LENGTH = 150
