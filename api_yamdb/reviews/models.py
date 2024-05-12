@@ -85,6 +85,7 @@ class Review(ReviewCommentBaseModel):
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
         unique_together = [['title', 'author']]
+        ordering = ["-pub_date"]
 
 
 class Comment(ReviewCommentBaseModel):
@@ -102,3 +103,4 @@ class Comment(ReviewCommentBaseModel):
 
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
+        ordering = ["-pub_date"]
