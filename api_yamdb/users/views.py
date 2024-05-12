@@ -1,5 +1,7 @@
 """Views for users app."""
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -9,10 +11,9 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import UserPermission
 from .serializers import (
     ConfirmationCodeSerializer, SignupSerializer, UserSerializer)
-from .send_mail import check_code, send_mail_to_user
+from .send_mail import send_mail_to_user
 from api.mixins import HttpMethodsMixin
 
 User = get_user_model()
@@ -23,30 +24,29 @@ class UserViewSet(HttpMethodsMixin, ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, UserPermission]
+    permission_classes = (IsAuthenticated,)
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
 
-    @action(detail=False, methods=('get',))
+    def check_permissions(self, request):
+        """Check if the request should be permitted."""
+        super().check_permissions(request)
+        url = request.get_full_path()
+        if '/me/' not in url and not request.user.is_admin:
+            self.permission_denied(request)
+
+    @action(detail=False, methods=('get', 'patch'))
     def current_user(self, request):
         """Get current user."""
-        serializer = UserSerializer(request.user)
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+        else:
+            serializer = UserSerializer(request.user, data=request.data,
+                                        partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save(role=request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=('patch',))
-    def update_current_user(self, request):
-        """Update current user."""
-        # Без этой строчки в тесте tests/test_01_users.py test_10_03
-        # вылетает ошибка QueryDict immutable.
-        data = request.data.copy()
-        if 'role' in data:
-            data['role'] = request.user.role
-        serializer = UserSerializer(request.user, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SignupAPIView(APIView):
@@ -57,11 +57,11 @@ class SignupAPIView(APIView):
     def post(self, request):
         """Execute when POST method."""
         serializer = SignupSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             user = serializer.save()
-            send_mail_to_user(user)
+            code: str = default_token_generator.make_token(user)
+            send_mail_to_user(user, code)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetTokenAPIView(APIView):
@@ -72,19 +72,12 @@ class GetTokenAPIView(APIView):
     def post(self, request):
         """Execute when POST method."""
         serializer = ConfirmationCodeSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                username: str = serializer.data.get('username', None)
-                user = User.objects.get(username=username)
-                confirmation_code: str = serializer.data.get(
-                    'confirmation_code', None)
-                if check_code(user, confirmation_code):
-                    refresh_token = RefreshToken.for_user(user)
-                    return Response({"token": str(refresh_token.access_token)},
-                                    status=status.HTTP_200_OK)
-            except User.DoesNotExist:
-                return Response({"message": "Пользователь не найден"},
-                                status=status.HTTP_404_NOT_FOUND)
+        if serializer.is_valid(raise_exception=True):
+            username: str = serializer.data.get('username', None)
+            user = get_object_or_404(User, username=username)
+            refresh_token = RefreshToken.for_user(user)
+            return Response({"token": str(refresh_token.access_token)},
+                            status=status.HTTP_200_OK)
         return Response(
             {"message": "Отсутствует обязательное поле или оно некорректно"},
             status=status.HTTP_400_BAD_REQUEST)
