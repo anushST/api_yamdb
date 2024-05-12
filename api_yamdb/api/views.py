@@ -16,17 +16,14 @@ from .serializers import (CategorySerializer, CommentSerializer,
 class TitleViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     """ViewSet for Title model."""
 
+    queryset = queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('name')
+
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
-
-    def get_queryset(self):
-        """Return queryset of title object."""
-        queryset = Title.objects.annotate(
-            rating_avg=Avg('reviews__score')
-        ).order_by('name')
-        return queryset
 
 
 class GenreViewSet(GenreCategoryMixin):
@@ -57,7 +54,7 @@ class ReviewViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         """Return queryset of title object."""
         title = self.get_title()
-        return title.reviews.all().order_by('-pub_date')
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         """Save serializer data."""
@@ -82,7 +79,7 @@ class CommentViewSet(HttpMethodsMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         """Return queryset of review object."""
         review = self.get_review()
-        return review.comments.all().order_by('-pub_date')
+        return review.comments.all()
 
     def perform_create(self, serializer):
         """Save serializer data."""
