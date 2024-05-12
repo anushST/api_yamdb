@@ -48,10 +48,15 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category',)
 
+    # Вы пишите "Лишний метод", однако т.к. для получения rating используется
+    # SerializerMethodField, использование метода get_<field_name> является
+    # стандартным подходом описанным как в теории данного курса, так и оф доке
+    # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
+    # Просьба пояснить Ваш комментарий
     def get_rating(self, obj):
         """Get annotated rating value."""
         try:
-            return obj.rating_avg
+            return obj.rating
         except AttributeError:
             return DEFAULT_TITLE_RATING
 
