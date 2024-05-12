@@ -9,7 +9,7 @@ router.register('users', UserViewSet, basename='user-for-admin')
 
 user_view_set = UserViewSet.as_view({
     'get': 'current_user',
-    'patch': 'update_current_user'
+    'patch': 'current_user',
 })
 
 urlpatterns = [
