@@ -28,21 +28,18 @@ class User(AbstractUser):
             'unique': "Пользователь с таким именем уже сеществует.",
         },
     )
-    email = models.EmailField('Email-адрес', unique=True, blank=True)
+    email = models.EmailField('Email-адрес', unique=True)
     bio = models.TextField('Биография', blank=True)
     role = models.CharField(
         max_length=ROLE_MAX_LENGTH, choices=UsersType.choices,
         default=UsersType.USER)
-    is_admin = models.BooleanField('Админ', default=False)
 
-    def save(self, *args, **kwargs):
-        """Save the current instance.
-
-        Ovverided to automaticly set field is_admin True to superuser.
-        """
+    @property
+    def is_admin(self) -> bool:
+        """Check is the user admin."""
         if self.is_superuser or self.role == self.UsersType.ADMIN:
-            self.is_admin = True
-        super().save(*args, **kwargs)
+            return True
+        return False
 
     class Meta:
         """Meta-data of the User class."""

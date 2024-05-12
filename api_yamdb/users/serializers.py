@@ -1,11 +1,13 @@
 """Serializers for users app."""
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator, ValidationError
+from rest_framework.validators import ValidationError
 
 from .constants import EMAIL_MAX_LENGTH, USERNAME_MAX_LENGTH
+from .send_mail import check_code
 from .validators import validate_username
 
 User = get_user_model()
@@ -13,12 +15,6 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model."""
-
-    email = serializers.EmailField(
-        max_length=EMAIL_MAX_LENGTH, required=True,
-        validators=(UniqueValidator(User.objects.all(),
-                                    'This email already exists.'),)
-    )
 
     class Meta:
         """Meta-data of UserSerialzier class."""
@@ -39,16 +35,21 @@ class SignupSerializer(serializers.Serializer):
     def create(self, validated_data):
         """Execute when POST method."""
         try:
-            return User.objects.get(**validated_data)
-        except User.DoesNotExist:
-            try:
-                return User.objects.create(**validated_data)
-            except IntegrityError as e:
-                raise ValidationError(e)
+            return User.objects.get_or_create(**validated_data)[0]
+        except IntegrityError as e:
+            raise ValidationError(e)
 
 
 class ConfirmationCodeSerializer(serializers.Serializer):
     """Serializer for ConfirmationCode model."""
 
-    username = serializers.CharField(max_length=150)
+    username = serializers.CharField(max_length=USERNAME_MAX_LENGTH)
     confirmation_code = serializers.CharField()
+
+    def validate(self, data):
+        """Validate serializer's data."""
+        user = get_object_or_404(User, username=data.get('username', ''))
+        if not check_code(user, data.get('confirmation_code', '')):
+            raise ValidationError(
+                'Отсутствует обязательное поле или оно некорректно')
+        return super().validate(data)
