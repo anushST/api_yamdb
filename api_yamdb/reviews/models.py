@@ -1,24 +1,31 @@
 """Models for review app."""
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .constants import MIN_YEAR_FOR_ART_OF_HUMAN
+from .constants import (MIN_YEAR_FOR_ART_OF_HUMAN, MAX_LENGTH_NAME,
+                        MIN_SCORE, MAX_SCORE)
 from core.models import CategoryGenreBaseModel, ReviewCommentBaseModel
-from .validators import get_current_year_validator
 
 User = get_user_model()
+
+
+def get_current_year():
+    """Get current year."""
+    return datetime.now().year
 
 
 class Title(models.Model):
     """The Title model."""
 
-    name = models.CharField('Название', max_length=256)
+    name = models.CharField('Название', max_length=MAX_LENGTH_NAME)
     year = models.SmallIntegerField(
         'Год выпуска',
         validators=[
             MinValueValidator(MIN_YEAR_FOR_ART_OF_HUMAN),
-            get_current_year_validator
+            MaxValueValidator(get_current_year)
         ]
     )
 
@@ -73,13 +80,14 @@ class Review(ReviewCommentBaseModel):
         verbose_name='Произведение'
     )
     score = models.PositiveSmallIntegerField(
-        'Оценка', help_text='Целое число в диапазоне от 1 до 10',
+        'Оценка',
+        help_text=f'Целое число в диапазоне от {MIN_SCORE} до {MAX_SCORE}',
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE)
         ])
 
-    class Meta:
+    class Meta(ReviewCommentBaseModel.Meta):
         """Meta-data of Review model."""
 
         verbose_name = 'отзыв'
@@ -97,7 +105,7 @@ class Comment(ReviewCommentBaseModel):
         verbose_name='Отзыв'
     )
 
-    class Meta:
+    class Meta(ReviewCommentBaseModel.Meta):
         """Meta-data of Comment model."""
 
         verbose_name = 'комментарий'
