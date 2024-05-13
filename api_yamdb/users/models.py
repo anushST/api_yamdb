@@ -37,9 +37,13 @@ class User(AbstractUser):
     @property
     def is_admin(self) -> bool:
         """Check is the user admin."""
-        if self.is_superuser or self.role == self.UsersType.ADMIN:
-            return True
-        return False
+        return (self.is_superuser or self.role == self.UsersType.ADMIN
+                or self.is_staff)
+
+    @property
+    def is_moderator(self) -> bool:
+        """Check is the user moderator."""
+        return self.role == self.UsersType.MODERATOR
 
     class Meta:
         """Meta-data of the User class."""
