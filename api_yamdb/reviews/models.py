@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .constants import (MAX_LENGTH_NAME, MIN_SCORE, MAX_SCORE)
-from .validators import YearValidator
+from .validators import validate_year
 from core.models import CategoryGenreBaseModel, ReviewCommentBaseModel
 
 User = get_user_model()
@@ -16,7 +16,7 @@ class Title(models.Model):
     name = models.CharField('Название', max_length=MAX_LENGTH_NAME)
     year = models.SmallIntegerField(
         'Год выпуска',
-        validators=[YearValidator()]
+        validators=[validate_year]
     )
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
