@@ -1,5 +1,6 @@
 """Serializers for users app."""
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
@@ -7,7 +8,6 @@ from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
 from .constants import EMAIL_MAX_LENGTH, USERNAME_MAX_LENGTH
-from .send_mail import check_code
 from .validators import validate_username
 
 User = get_user_model()
@@ -35,7 +35,9 @@ class SignupSerializer(serializers.Serializer):
     def create(self, validated_data):
         """Execute when POST method."""
         try:
-            return User.objects.get_or_create(**validated_data)[0]
+            user_instance, created = User.objects.get_or_create(
+                **validated_data)
+            return user_instance
         except IntegrityError as e:
             raise ValidationError(e)
 
@@ -49,7 +51,8 @@ class ConfirmationCodeSerializer(serializers.Serializer):
     def validate(self, data):
         """Validate serializer's data."""
         user = get_object_or_404(User, username=data.get('username', ''))
-        if not check_code(user, data.get('confirmation_code', '')):
+        confirmation_code = data.get('confirmation_code', '')
+        if not default_token_generator.check_token(user, confirmation_code):
             raise ValidationError(
                 'Отсутствует обязательное поле или оно некорректно')
         return super().validate(data)
