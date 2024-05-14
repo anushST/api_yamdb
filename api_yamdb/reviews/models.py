@@ -1,20 +1,13 @@
 """Models for review app."""
-from datetime import datetime
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .constants import (MIN_YEAR_FOR_ART_OF_HUMAN, MAX_LENGTH_NAME,
-                        MIN_SCORE, MAX_SCORE)
+from .constants import (MAX_LENGTH_NAME, MIN_SCORE, MAX_SCORE)
+from .validators import validate_year
 from core.models import CategoryGenreBaseModel, ReviewCommentBaseModel
 
 User = get_user_model()
-
-
-def get_current_year():
-    """Get current year."""
-    return datetime.now().year
 
 
 class Title(models.Model):
@@ -23,12 +16,8 @@ class Title(models.Model):
     name = models.CharField('Название', max_length=MAX_LENGTH_NAME)
     year = models.SmallIntegerField(
         'Год выпуска',
-        validators=[
-            MinValueValidator(MIN_YEAR_FOR_ART_OF_HUMAN),
-            MaxValueValidator(get_current_year)
-        ]
+        validators=[validate_year]
     )
-
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
         'Genre',
