@@ -2,7 +2,6 @@
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from .constants import DEFAULT_TITLE_RATING
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -39,7 +38,7 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
 
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(required=False)
 
     class Meta:
         """Meta-data of TitleSerializier class."""
@@ -47,18 +46,6 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category',)
-
-    # Вы пишите "Лишний метод", однако т.к. для получения rating используется
-    # SerializerMethodField, использование метода get_<field_name> является
-    # стандартным подходом описанным как в теории данного курса, так и оф доке
-    # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
-    # Просьба пояснить Ваш комментарий
-    def get_rating(self, obj):
-        """Get annotated rating value."""
-        try:
-            return obj.rating
-        except AttributeError:
-            return DEFAULT_TITLE_RATING
 
     def to_representation(self, instance):
         """
