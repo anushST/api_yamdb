@@ -81,7 +81,12 @@ class Review(ReviewCommentBaseModel):
 
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
-        unique_together = [['title', 'author']]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique review'
+            )
+        ]
 
 
 class Comment(ReviewCommentBaseModel):

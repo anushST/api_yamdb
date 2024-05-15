@@ -1,7 +1,6 @@
 """Views for users app."""
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -69,8 +68,7 @@ class GetTokenAPIView(APIView):
         """Execute when POST method."""
         serializer = ConfirmationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username: str = serializer.data.get('username', None)
-        user = get_object_or_404(User, username=username)
+        user = serializer.data.get('user')
         refresh_token = RefreshToken.for_user(user)
         return Response({"token": str(refresh_token.access_token)},
                         status=status.HTTP_200_OK)
