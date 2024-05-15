@@ -69,8 +69,7 @@ class GetTokenAPIView(APIView):
         """Execute when POST method."""
         serializer = ConfirmationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username: str = serializer.data.get('username', None)
-        user = get_object_or_404(User, username=username)
+        user = serializer.data.get('user')
         refresh_token = RefreshToken.for_user(user)
         return Response({"token": str(refresh_token.access_token)},
                         status=status.HTTP_200_OK)
