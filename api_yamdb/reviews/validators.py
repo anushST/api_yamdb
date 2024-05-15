@@ -10,4 +10,4 @@ def validate_year(value):
     if datetime.now().year < value < MIN_YEAR_FOR_ART_OF_HUMAN:
         raise ValidationError(
             f'Год не может быть меньше {MIN_YEAR_FOR_ART_OF_HUMAN} '
-            f'и не больше текущего.')
+            f'и больше текущего.')
